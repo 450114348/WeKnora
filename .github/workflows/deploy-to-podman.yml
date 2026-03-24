@@ -1,0 +1,27 @@
+name: 自动部署 WeKnora 到本地 Podman
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      DEPLOY_DIR: /mnt/f/weknora
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 同步到F盘
+        run: |
+          mkdir -p $DEPLOY_DIR
+          rsync -av --delete \
+            --exclude '.git' \
+            --exclude '.env' \
+            ./ $DEPLOY_DIR/
+
+      - name: 启动Podman部署
+        run: |
+          cd $DEPLOY_DIR
+          podman-compose up -d --force-recreate
